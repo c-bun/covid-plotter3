@@ -44,7 +44,7 @@ def generate_figure(df):
 
 def upload_figure(fig):
     set_credentials_file(username=keys["chart_studio"]["username"], api_key=keys["chart_studio"]["api_key"])
-    csp.iplot(fig, filename = 'Dickinson College Cases')
+    csp.plot(fig, filename = 'Dickinson College Cases')
 
 if __name__ == "__main__":
 
