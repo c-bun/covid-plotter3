@@ -71,7 +71,7 @@ if __name__ == "__main__":
 
     last_numbers = list(data.iloc[-1].values[1:])
 
-    if (last_numbers != current_numbers) or testing:
+    if (last_numbers != current_numbers):
         print("New numbers!")
         time = datetime.datetime.now().strftime("%x %X")
         new_numbers = pd.DataFrame({'time':[time],'pos':[current_numbers[0]], 'cumulative':[current_numbers[1]], 'quarantine':[current_numbers[2]]})
