@@ -94,7 +94,7 @@ def upload_figure(fig):
         username=keys["chart_studio"]["username"],
         api_key=keys["chart_studio"]["api_key"],
     )
-    csp.plot(fig, filename="Dickinson College Cases")
+    csp.plot(fig, filename="Dickinson College Cases. Updated "+datetime.datetime.now().strftime("%x %X"))
 
 
 def add_data(data, new_data):
