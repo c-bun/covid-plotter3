@@ -85,6 +85,8 @@ def generate_figure(df):
     ))
     
     fig.update_layout(title="Dickinson Positive Cases", xaxis_title="Day", yaxis_title="Case Count")
+    #for setting to view the most recent 20 points?
+    fig.update_xaxes(range=[data["time"].iloc[-30], data["time"].iloc[-1]])
 
     return fig
 
