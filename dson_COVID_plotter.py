@@ -68,26 +68,25 @@ def telegram_bot_sendtext(bot_message):
 
     return response.json()
 
+def reshape_data(data):
+    data_students = data[['time', 'pos', 'cumulative']]
+    data_students['group'] = 'students'
+    data_employees = data[['time', 'employees pos', 'employees cum.']]
+    data_employees = data_employees.rename(columns={'employees pos':'pos', 'employees cum.':'cumulative'})
+    data_employees = data_employees.dropna(axis=0)
+    data_employees['group'] = 'employees'
 
-def generate_figure(df):
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=df["time"],
-        y=df["pos"],
-        name="Student Cases",
-        line=dict(color='firebrick', width=2)
-    ))
-    fig.add_trace(go.Scatter(
-        x=df["time"],
-        y=df["employees pos"],
-        name="Employee Cases",
-        line=dict(color='royalblue', width=2)
-    ))
-    
-    fig.update_layout(title="Dickinson Positive Cases", xaxis_title="Day", yaxis_title="Case Count")
-    #for setting to view the most recent 20 points?
+    return pd.concat([data_students,data_employees])
+
+def generate_figure(data_long, data):
+
+    import plotly.express as px
+    fig = px.line(data_long, x='time', y='pos', color='group', symbol="group")
+
+    time = datetime.datetime.now().strftime("%x %X")
+    fig.update_layout(title="Dickinson Positive Cases. (Updated "+time+")", xaxis_title="Day", yaxis_title="Case Count")
+        #for setting to view the most recent 20 points?
     fig.update_xaxes(range=[data["time"].iloc[-30], data["time"].iloc[-1]])
-
     return fig
 
 
@@ -96,7 +95,9 @@ def upload_figure(fig):
         username=keys["chart_studio"]["username"],
         api_key=keys["chart_studio"]["api_key"],
     )
-    csp.plot(fig, filename="Dickinson College Cases. Updated "+datetime.datetime.now().strftime("%x %X"))
+    if testing: title = "testplot"
+    else: title = "Dickinson College Cases"
+    csp.plot(fig, filename=title)
 
 
 def add_data(data, new_data):
@@ -152,11 +153,11 @@ if __name__ == "__main__":
 
         # update plot
         data["time"] = pd.to_datetime(data["time"])
-        fig = generate_figure(data)
+        data_long = reshape_data(data)
+        fig = generate_figure(data_long, data)
 
         # upload plot
-        if not testing:
-            upload_figure(fig)
+        upload_figure(fig)
         print("Updated plot on plotly.")
 
     else:
