@@ -80,11 +80,40 @@ def reshape_data(data):
 
 def generate_figure(data_long, data):
 
-    import plotly.express as px
-    fig = px.line(data_long, x='time', y='pos', color='group', symbol="group")
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+    d_students = data_long[data_long['group']=='students']
+    d_employees = data_long[data_long['group']=='employees']
+
+    fig.add_trace(
+        go.Scatter(x=d_students['time'], y=d_students['pos'], name="students pos"),
+        secondary_y=False
+    )
+    fig.add_trace(
+        go.Scatter(x=d_employees['time'], y=d_employees['pos'], name="employees pos"),
+        secondary_y=False
+    )
+
+    fig.add_trace(
+        go.Scatter(x=d_students['time'], y=d_students['cumulative'], name="students cumulative"),
+        secondary_y=True
+    )
+    fig.add_trace(
+        go.Scatter(x=d_employees['time'], y=d_employees['cumulative'], name="employees cumulative"),
+        secondary_y=True
+    )
 
     time = datetime.datetime.now().strftime("%x %X")
-    fig.update_layout(title="Dickinson Positive Cases. (Updated "+time+")", xaxis_title="Day", yaxis_title="Case Count")
+    fig.update_layout(
+        title="Dickinson Cases. (Updated "+time+")"
+    )
+    fig.update_xaxes(title_text="Day")
+    fig.update_yaxes(title_text="Positive Case Count", secondary_y=False)
+    fig.update_yaxes(title_text="Cumulative Case Count", secondary_y=True)
+
         #for setting to view the most recent 20 points?
     fig.update_xaxes(range=[data["time"].iloc[-30], data["time"].iloc[-1]])
     return fig
