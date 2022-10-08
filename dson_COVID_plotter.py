@@ -50,6 +50,29 @@ def parse_soup(soup):
     ]
     return to_append, to_send
 
+def parse_soup_f2022(soup):
+    td = soup.find_all("td")
+    result = [x.get_text() for x in td]
+    print(result)
+    to_send = (
+        "Students current/cumulative || Staff current/cumulative\n"
+        + result[2] #students current
+        + "/"
+        + result[3] #students cumulative
+        + " || "
+        + result[6] #staff current
+        + "/"
+        + result[7] #staff cumulative
+    )
+    to_append = [
+        int(result[2]),
+        int(result[3]),
+        -1, # supposed to be quarantine, but not available anymore
+        int(result[6]),
+        int(result[7]),
+    ]
+    return to_append, to_send
+
 
 def telegram_bot_sendtext(bot_message):
 
@@ -161,33 +184,40 @@ if __name__ == "__main__":
 
     print("found data, reading site")
 
-    url = "https://www.dickinson.edu/homepage/1505/fall_2021_semester_information"
-    page = requests.get(url)
+    url = 'https://www.dickinson.edu/homepage/1580/covid-19_student_information' # new url for fall 2022
+    #url = "https://www.dickinson.edu/homepage/1505/fall_2021_semester_information"
 
-    soup = BeautifulSoup(page.text, "html.parser")
+    try:
+        page = requests.get(url)
 
-    current_numbers, to_send = parse_soup(soup)
-    print("Found Current numbers:", to_send)
+        soup = BeautifulSoup(page.text, "html.parser")
 
-    last_numbers = list(data.iloc[-1].values[1:])
+        #current_numbers, to_send = parse_soup(soup)
+        current_numbers, to_send = parse_soup_f2022(soup) # new function for fall 2022
+        print("Found Current numbers:", to_send)
 
-    if (last_numbers != current_numbers) or testing:
-        print("New numbers!")
-        data = add_data(data, current_numbers)
-        print("Appended. Writing csv.")
-        data.to_csv("./data.csv")
+        last_numbers = list(data.iloc[-1].values[1:])
 
-        # send telegram
-        if not testing: telegram_bot_sendtext(to_send)
+        if (last_numbers != current_numbers) or testing:
+            print("New numbers!")
+            data = add_data(data, current_numbers)
+            print("Appended. Writing csv.")
+            data.to_csv("./data.csv")
 
-        # update plot
-        data["time"] = pd.to_datetime(data["time"])
-        data_long = reshape_data(data)
-        fig = generate_figure(data_long, data)
+            # send telegram
+            if not testing: telegram_bot_sendtext(to_send)
 
-        # upload plot
-        upload_figure(fig)
-        print("Updated plot on plotly.")
+            # update plot
+            data["time"] = pd.to_datetime(data["time"])
+            data_long = reshape_data(data)
+            fig = generate_figure(data_long, data)
 
-    else:
-        print("No new numbers right now.")
+            # upload plot
+            upload_figure(fig)
+            print("Updated plot on plotly.")
+
+        else:
+            print("No new numbers right now.")
+    except Exception as e:
+        print("Error:", e)
+        if not testing: telegram_bot_sendtext("Error: "+str(e))
